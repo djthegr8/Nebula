@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# CS1703: Multiple assemblies with equivalent identity have been imported: 'C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\3.1.0\ref\netcoreapp3.1\Microsoft.VisualBasic.dll' and 'C:\Users\ADMIN\source\repos\Nebula\Nebula\Microsoft.VisualBasic.dll'. Remove one of the duplicate references.
+dotnet_diagnostic.CS1703.severity = silent

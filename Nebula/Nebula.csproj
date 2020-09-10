@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>
+    <ApplicationIcon>task-manager-icon-0.ico</ApplicationIcon>
+    <AssemblyName>Nebula Task Manager</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="AMDIcon.png" />
+    <None Remove="IntelIcon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\.editorconfig" Link=".editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LiveCharts.Wpf.NetCore3" Version="0.9.7" />
+    <PackageReference Include="MaterialDesignColors" Version="1.2.6" />
+    <PackageReference Include="MaterialDesignThemes" Version="3.1.3" />
+    <PackageReference Include="SharpVectors.Reloaded" Version="1.6.0" />
+    <PackageReference Include="System.Management" Version="4.7.0" />
+    <Reference Include="ShowMeTheXAML.dll">
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="AMDIcon.png" />
+    <Resource Include="IntelIcon.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+</Project>
