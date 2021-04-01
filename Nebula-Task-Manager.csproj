@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <AssemblyName>Nebula-Task-Manager</AssemblyName>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>True</UseWPF>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>Preview</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <RootNamespace />
+    <StartupObject>Nebula.App</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Nebula\MaterialDesignDemo\**" />
+    <EmbeddedResource Remove="Nebula\MaterialDesignDemo\**" />
+    <None Remove="Nebula\MaterialDesignDemo\**" />
+    <Page Remove="Nebula\MaterialDesignDemo\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="intelicon.png" />
+    <None Remove="amdicon.png" />
+    <None Remove="nebula-20logo.png" />
+    <EmbeddedResource Include="intelicon.png" />
+    <EmbeddedResource Include="amdicon.png" />
+    <EmbeddedResource Include="nebula-20logo.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="LiveCharts.Wpf.NetCore3" Version="0.9.7" />
+    <PackageReference Include="MaterialDesignThemes" Version="4.0.0" />
+    <PackageReference Include="ShowMeTheXAML" Version="2.0.0" />
+    <PackageReference Include="System.Management" Version="6.0.0-preview.1.21102.12" />
+  </ItemGroup>
+</Project>

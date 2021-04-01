@@ -1,161 +1,219 @@
-﻿using System.Collections.Generic;
-using System.Windows;
-using System.Windows.Input;
-using System.Diagnostics;
 using System;
-using LiveCharts;
-using LiveCharts.Wpf;
-using System.Net;
-using System.IO;
-using System.Windows.Threading;
-using LiveCharts.Defaults;
-using LiveCharts.Configurations;
-using Microsoft;
-using System.Windows.Media;
-using System.Management;
+using System.CodeDom.Compiler;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Management;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Markup;
+using System.Windows.Media;
+using System.Windows.Threading;
+using LiveCharts.Wpf;
+using MaterialDesignThemes.Wpf;
 
 namespace Nebula
 {
     public partial class MainWindow : Window
-    {
-        private string strData;
-        private string str2data;
-        public static long alpha = new ManagementObjectSearcher("SELECT Capacity FROM Win32_PhysicalMemory").Get().Cast<ManagementObject>().Sum(x => Convert.ToInt64(x.Properties["Capacity"].Value))/(1024 * 1024 * 1024);
+	{
+		public class Processes
+		{
+			public string PID { get; set; }
+
+			public string Process_Name { get; set; }
+
+			public string RAMTaken { get; set; }
+		}
+
+		private string strData;
+
+		private string str2data;
+
+		public ObservableCollection<DataObject> listee;
+
+		public string PID;
+
+		public string Pname;
+
+		public ObservableCollection<Processes> listp = new ObservableCollection<Processes>();
+
+		public static long alpha = new ManagementObjectSearcher("SELECT Capacity FROM Win32_PhysicalMemory").Get().Cast<ManagementObject>().Sum((ManagementObject x) => Convert.ToInt64(x.Properties["Capacity"].Value)) / 1073741824;
+
         public MainWindow()
-        {
-            InitializeComponent();
-            GaugeIOT.LabelFormatter = (double x) => x.ToString() + '%';
-            
-            RAM.Text = alpha.ToString() + " ";
-            GaugeIOT2.ToValue = alpha;
-            var name = (from x in new ManagementObjectSearcher("SELECT Caption FROM Win32_OperatingSystem").Get().Cast<ManagementObject>()
-                        select x.GetPropertyValue("Caption")).FirstOrDefault();
-            var osn = name != null ? name.ToString() : "Unknown";
-            OSS_Copy1.Text = osn.Split(' ')[0];
-            OSS_Copy.Text = osn.Replace(osn.Split(' ')[0] + " ", "");
-            OSS.Text = $"Version: {Environment.OSVersion.Version}";
-            ManagementObjectSearcher mos = new ManagementObjectSearcher("root\\CIMV2", "SELECT * FROM Win32_Processor");
-            foreach (ManagementObject mo in mos.Get())
-            {
-                Alfa.Text = (mo["Name"]).ToString().Split(' ')[0];
-                Alfa_Copy.Text = (mo["Name"]).ToString().Replace(Alfa.Text, "");
-            }
-            if (Alfa.Text[0] != 'i' && Alfa.Text[0] != 'I')
-            {
-                intel.Visibility = Visibility.Hidden;
-                amd.Visibility = Visibility.Visible;
-            }
-            osidek.Kind = (OSS_Copy.Text.Split(' ')[1][0]) switch
-            {
-                '8' => MaterialDesignThemes.Wpf.PackIconKind.MicrosoftWindows,
-                '1' => MaterialDesignThemes.Wpf.PackIconKind.MicrosoftWindows,
-                _ => MaterialDesignThemes.Wpf.PackIconKind.MicrosoftWindowsClassic,
-            };
-            GaugeIOT2.Sections = new List<AngularSection>
-            {
-                new AngularSection
-                {
-                    FromValue=0,
-                    ToValue=Convert.ToInt32(alpha/3),
-                    Fill = new SolidColorBrush(Color.FromRgb(187,134,252))
-                },
-                new AngularSection
-                {
-                    FromValue = Convert.ToInt32(alpha/3),
-                    ToValue = 2 * Convert.ToInt32(alpha/3),
-                    Fill = new SolidColorBrush(Color.FromRgb(55,0,179))
-                },
-                new AngularSection
-                {
-                    FromValue = 2 * Convert.ToInt32(alpha/3),
-                    ToValue = alpha,
-                    Fill = new SolidColorBrush(Color.FromRgb(207,102,121))
-                }
-            };
-            DispatcherTimer timer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromSeconds(0.3)
-            };
-            timer.Tick += Timer_Tick;
-            timer.Start();
-        }
-        private void CloseButtonClick(object sender, RoutedEventArgs e)
-        {
-            Application.Current.Shutdown();
-        }
+		{
+			InitializeComponent();
+			GaugeIOT.LabelFormatter = (double x) => x + "%";
+			RAM.Text = alpha + " ";
+			GaugeIOT2.ToValue = alpha;
+			var obj = (from ManagementObject x in new ManagementObjectSearcher("SELECT Caption FROM Win32_OperatingSystem").Get()
+				select x.GetPropertyValue("Caption")).FirstOrDefault();
+			var text = ((obj != null) ? obj.ToString() : "Unknown");
+			OSS_Copy1.Text = text.Split(' ')[0];
+			OSS_Copy.Text = text.Replace(text.Split(' ')[0] + " ", "");
+			OSS.Text = $"Version: {Environment.OSVersion.Version}";
+			foreach (ManagementObject item in new ManagementObjectSearcher("root\\CIMV2", "SELECT * FROM Win32_Processor").Get())
+			{
+				Alfa.Text = item["Name"].ToString()!.Split(' ')[0];
+				Alfa_Copy.Text = item["Name"].ToString()!.Replace(Alfa.Text, "");
+			}
+			if (Alfa.Text[0] != 'i' && Alfa.Text[0] != 'I')
+			{
+				intel.Visibility = Visibility.Hidden;
+				amd.Visibility = Visibility.Visible;
+			}
+			PackIcon packIcon = osidek;
+			packIcon.Kind = OSS_Copy.Text.Split(' ')[1][0] switch
+			{
+				'8' => PackIconKind.MicrosoftWindows, 
+				'1' => PackIconKind.MicrosoftWindows, 
+				_ => PackIconKind.MicrosoftWindowsClassic, 
+			};
+			GaugeIOT2.Sections = new List<AngularSection>
+			{
+				new AngularSection
+				{
+					FromValue = 0.0,
+					ToValue = alpha,
+					Fill = new LinearGradientBrush(new GradientStopCollection
+					{
+						new GradientStop
+						{
+							Offset = 0.0,
+							Color = Color.FromRgb(199, 118, 221)
+						},
+						new GradientStop
+						{
+							Offset = 0.25,
+							Color = Color.FromRgb(143, 85, 204)
+						},
+						new GradientStop
+						{
+							Offset = 0.5,
+							Color = Color.FromRgb(101, 62, 178)
+						},
+						new GradientStop
+						{
+							Offset = 0.75,
+							Color = Color.FromRgb(59, 41, 135)
+						},
+						new GradientStop
+						{
+							Offset = 1.0,
+							Color = Color.FromRgb(18, 10, 99)
+						}
+					})
+				}
+			};
+			DispatcherTimer dispatcherTimer = new DispatcherTimer();
+			dispatcherTimer.Interval = TimeSpan.FromSeconds(0.3);
+			dispatcherTimer.Tick += Timer_Tick;
+			dispatcherTimer.Start();
+		}
 
-        private void OnGridMouseDown(object sender, MouseButtonEventArgs e)
-        {
-            DragMove();
-        }
-        void Timer_Tick(object sender, EventArgs eventArgs)
-        {
-            try
-            {
-                strData = new Consumption().Percentage.ToString();
-                str2data = new Consumption(false).Percentage.ToString();
-                var convertDouble = Convert.ToDouble(strData);
-                var convertDouble2 = Convert.ToDouble(str2data);
-                GaugeIOT.Value = convertDouble;
-                GaugeIOT2.Value = convertDouble2;
-            }
-            catch (Exception)
-            {
+		private void CloseButtonClick(object sender, RoutedEventArgs e)
+		{
+			Application.Current.Shutdown();
+		}
 
-            }
-        }
+		private void OnGridMouseDown(object sender, MouseButtonEventArgs e)
+		{
+			DragMove();
+		}
 
-        private void Made_Click_1(object sender, RoutedEventArgs e)
-        {
-            Process.Start("https://github.com/djthegr8");
-        }
+		private void Timer_Tick(object sender, EventArgs eventArgs)
+		{
+			try
+			{
+				strData = new Consumption().Percentage.ToString();
+				str2data = new Consumption(isCPU: false).Percentage.ToString();
+				double value = Convert.ToDouble(strData);
+				double value2 = Convert.ToDouble(str2data);
+				GaugeIOT.Value = value;
+				GaugeIOT2.Value = value2;
+				Process[] prcs = Process.GetProcesses();
+				Process[] array = prcs;
+				foreach (Process process in array)
+				{
+					if (string.IsNullOrEmpty(process.MainWindowTitle))
+					{
+						continue;
+					}
+					if (listp.All(x => x.PID != process.Id.ToString()))
+					{
+						listp.Add(new Processes
+						{
+							PID = process.Id.ToString(),
+							Process_Name = process.MainWindowTitle,
+							RAMTaken = $"{process.WorkingSet64 / 1024:#,##0.##}"
+						});
+					}
+					else if (listp.First((Processes x) => x.PID == process.Id.ToString()).Process_Name != process.MainWindowTitle)
+					{
+						listp.Remove(listp.First((Processes x) => x.PID == process.Id.ToString()));
+						listp.Add(new Processes
+						{
+							PID = process.Id.ToString(),
+							Process_Name = process.MainWindowTitle,
+							RAMTaken = $"{process.WorkingSet64 / 1024:#,##0.##}"
+						});
+					}
+				}
+				if (listp.Any((Processes lel) => !prcs.Any((Process x) => x.Id.ToString() == lel.PID)))
+				{
+					listp.Remove(listp.First((Processes lel) => !prcs.Any((Process x) => x.Id.ToString() == lel.PID)));
+				}
+				DG1.ItemsSource = listp;
+			}
+			catch (Exception)
+			{
+			}
+		}
 
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            Application.Current.MainWindow.WindowState = WindowState.Minimized;
-        }
+		private void Made_Click_1(object sender, RoutedEventArgs e)
+		{
+			Process.Start("https://github.com/djthegr8");
+		}
 
-        private void DashButtonClick(object sender, RoutedEventArgs e)
-        {
-            ProcessPage.Visibility = Visibility.Collapsed;
-            Dashboard.Visibility = Visibility.Visible;
-        }
+		private void Button_Click(object sender, RoutedEventArgs e)
+		{
+			Application.Current.MainWindow.WindowState = WindowState.Minimized;
+		}
 
-        private void ProcessButtonClick(object sender, RoutedEventArgs e)
-        {
-            Dashboard.Visibility = Visibility.Collapsed;
-            ProcessPage.Visibility = Visibility.Visible;
-        }
-    }
-    internal class Consumption
-    {
-        public double Percentage { get; private set; }
+		private void DashButtonClick(object sender, RoutedEventArgs e)
+		{
+			ProcessPage.Visibility = Visibility.Collapsed;
+			Dashboard.Visibility = Visibility.Visible;
+		}
 
-        public PerformanceCounter perfc = new PerformanceCounter("Processor", "% Processor Time", "_Total");
-        public PerformanceCounter ramCounter = new PerformanceCounter("Memory", "Available MBytes", true);
-        //public PerformanceCounter ramc;
+		private void ProcessButtonClick(object _, RoutedEventArgs __)
+		{
+			Dashboard.Visibility = Visibility.Collapsed;
+			ProcessPage.Visibility = Visibility.Visible;
+		}
 
-        public Consumption(bool isCPU = true)
-        {
-            Percentage = CalculatePercentage(isCPU);
-        }
+		private void MenuItem_Click(object sender, RoutedEventArgs e)
+		{
+			Processes processes = (Processes)((DataGrid)((ContextMenu)((MenuItem)sender).Parent).PlacementTarget).SelectedCells[0].Item;
+            var prc = Process.GetProcessById(int.Parse(processes.PID));
+			prc.CloseMainWindow();
+			prc.Close();
+			listp.Remove(processes);
+		}
 
-        private double CalculatePercentage(bool isCPU = true)
-        {
-            if (isCPU)
-            {
-                perfc.NextValue();
-                System.Threading.Thread.Sleep(300);
-                return perfc.NextValue();
-            }
-            else
-            {
-                ramCounter.NextValue();
-                System.Threading.Thread.Sleep(300);
-                return MainWindow.alpha - ramCounter.NextValue() / 1024;
-            }
-        }
+		private void MenuItem_Click_1(object sender, RoutedEventArgs e)
+		{
+			try
+			{
+				listp.Clear();
+				Timer_Tick(null, null);
+			}
+			catch
+			{
+			}
+		}
+
     }
 }
